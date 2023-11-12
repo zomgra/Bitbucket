@@ -1,4 +1,6 @@
-﻿namespace Bitbucket.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Bitbucket.Models
 {
     public class Shipment
     {
@@ -6,7 +8,11 @@
         {
             Barcode = barcode;
         }
-        public int Id { get; set; }
+        public Shipment()
+        {
+
+        }
+        [Key]
         public string Barcode { get; set; }
     }
 }
