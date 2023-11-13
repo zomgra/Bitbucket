@@ -1,4 +1,5 @@
 using Bitbucket.Data;
+using Bitbucket.Middlewares;
 using Bitbucket.Services;
 using Bitbucket.SwaggerOptions;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -46,6 +49,7 @@ builder.Services.AddBloomFilter(setupAction =>
 
 builder.Services.AddTransient<BarCodeGenerator>();
 builder.Services.AddTransient<BloomFilterService>();
+builder.Services.AddTransient<ShipmentService>();
 
 builder.Services.AddDbContext<AppDbContext>(x=>x.UseInMemoryDatabase("BitBucket"));
 
@@ -67,6 +71,8 @@ if (app.Environment.IsDevelopment())
         }
     });
 }
+
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseAuthorization();
 

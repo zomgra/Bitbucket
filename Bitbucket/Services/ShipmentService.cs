@@ -21,6 +21,15 @@ namespace Bitbucket.Services
             _generator = generator;
         }
 
+        public async Task<Shipment> GetByBarcodeAsync(string barcode)
+        {
+            var shipment = await _context.Shipments.FirstOrDefaultAsync(x=>x.Barcode == barcode);
+            if (shipment is null)
+                throw new DomainException("Can`t found shipment in DB");
+
+            return shipment;
+        }
+
        public async Task Add(Shipment value, CancellationToken cancellationToken)
         {
             try

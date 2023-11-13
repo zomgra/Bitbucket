@@ -48,7 +48,7 @@ namespace Bitbucket.Services
         {
             if (string.IsNullOrEmpty(barcode) || barcode.Length < 13 || barcode.Length > 25)
             {
-                return false;
+                throw new DomainException("Barcode must be 13-25 length", 400);
             }
             if(_bloomFilter is null)
                 return false;

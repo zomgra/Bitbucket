@@ -4,11 +4,14 @@ using Bitbucket.Services;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Diagnostics;
+using System.Net.Mime;
+
 namespace Bitbucket.Controllers.V2;
 
 [ApiController]
 [Route("api/v{version:apiVersion}/shipments")]
 [ApiVersion("2.0")]
+[Produces("application/json")]
 public class ShipmentsController : ControllerBase
 {
     private readonly BloomFilterService _bloomFilterService;
@@ -31,7 +34,9 @@ public class ShipmentsController : ControllerBase
     /// <param name="cancellationToken"></param>
     /// <returns>Have barcode in Data Base</returns>
     [HttpGet("check")]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, "Problem on the server", Type = typeof(ShipmentResponse))]
+    [SwaggerResponse(StatusCodes.Status500InternalServerError, "Problem on the server", Type = typeof(DomainErrorResponse))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Shipment with barcode found in DB using with out bloom filter", Type = typeof(ShipmentResponse))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Shipment with barcode not found in DB with out using bloom filter", Type = typeof(ShipmentResponse))]
     [MapToApiVersion("2.0")]
     public async Task<IActionResult> CheckBarcode(string barcode,
         CancellationToken cancellationToken)
@@ -48,9 +53,15 @@ public class ShipmentsController : ControllerBase
         }
         return NotFound(new ShipmentResponse { Time = stopwatch.ElapsedMilliseconds, Value = false });
     }
+    /// <summary>
+    /// Add shipment to db with out using bloom filter
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     [MapToApiVersion("2.0")]
     [HttpPost("add")]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, "Problem on the server", Type = typeof(ShipmentResponse))]
+    [SwaggerResponse(StatusCodes.Status201Created, "Success adding shipment with out bloom filter", Type = typeof(ShipmentResponse))]
+    [SwaggerResponse(StatusCodes.Status500InternalServerError, "Problem on the server", Type = typeof(DomainErrorResponse))]
     public async Task<IActionResult> AddShipment(CancellationToken cancellationToken)
     {
         Stopwatch stopwatch = new();
@@ -60,12 +71,20 @@ public class ShipmentsController : ControllerBase
 
         stopwatch.Stop();
 
-        return Ok(new ShipmentResponse { Time = stopwatch.ElapsedMilliseconds, Value = shipment });
+        return Created(Url.ActionLink(nameof(AddShipment)), new ShipmentResponse { Time = stopwatch.ElapsedMilliseconds, Value = shipment });
     }
 
+    /// <summary>
+    /// Create test shipments
+    /// </summary>
+    /// <param name="count">Count to create test shipment
+    /// !recommended number 100000!</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     [HttpPost("add-many")]
     [MapToApiVersion("2.0")]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, "Problem on the server", Type = typeof(ShipmentResponse))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success adding many shipments with out bloom filter", Type = typeof(ShipmentResponse))]
+    [SwaggerResponse(StatusCodes.Status500InternalServerError, "Problem on the server", Type = typeof(DomainErrorResponse))]
     public async Task<IActionResult> AddTestShipments(int count,
         CancellationToken cancellationToken)
     {
