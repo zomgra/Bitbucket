@@ -4,17 +4,25 @@ using Bitbucket.Services;
 using Bitbucket.SwaggerOptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using Bitbucket.Memory;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+
 builder.Services.AddControllers(options =>
 {
 });
+
+builder.Services.AddHealthChecks()
+    .AddProcessAllocatedMemoryHealthCheck( 200, name: "200mb-memory-use", tags: new string[] {"More 200mb using"})
+    .AddCheck<MemoryHealthCheck>("memory", tags: new string[] {"memory"});
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -71,11 +79,17 @@ if (app.Environment.IsDevelopment())
         }
     });
 }
-
+app.UseRouting();
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseAuthorization();
 
-app.MapControllers();
 
+
+app.MapControllers();
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+});
 app.Run();

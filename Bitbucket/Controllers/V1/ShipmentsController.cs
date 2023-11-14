@@ -95,6 +95,6 @@ public class ShipmentsController : ControllerBase
         }
 
         stopwatch.Stop();
-        return Ok(new ShipmentResponse { Value = true, Time = stopwatch.ElapsedMilliseconds });
+        return Ok(new ShipmentResponse { Value = true, Time = stopwatch.ElapsedMilliseconds});
     }
 }
