@@ -24,7 +24,7 @@ namespace Bitbucket.Services
 
         public async Task Add(Shipment value, CancellationToken cancellationToken)
         {
-            if(_bloomFilter is null)
+            if (_bloomFilter is null)
             {
                 throw new DomainException("Bloom Filter haven`t instance");
             }
@@ -50,10 +50,18 @@ namespace Bitbucket.Services
             {
                 throw new DomainException("Barcode must be 13-25 length", 400);
             }
-            if(_bloomFilter is null)
+            if (_bloomFilter is null)
                 return false;
 
-            return _bloomFilter.Contains(barcode);
+            if (!_bloomFilter.Contains(barcode))
+                return false;
+
+
+            var shipment = await _context.Shipments.FirstOrDefaultAsync(x => x.Barcode == barcode, cancellationToken);
+            if (shipment == null)
+                return false;
+
+            return true;
         }
     }
 }
