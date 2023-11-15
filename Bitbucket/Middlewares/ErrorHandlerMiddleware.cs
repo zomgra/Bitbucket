@@ -22,7 +22,7 @@ namespace Bitbucket.Middlewares
             {
                 logger.LogError("Error on the domain: {message}", ex.Message);
                 context.Response.StatusCode = ex.StatusCode;
-                await context.Response.WriteAsJsonAsync(new DomainErrorResponse
+                await context.Response.WriteAsJsonAsync(new DomainError
                 {
                     Message = ex.Message 
                 });

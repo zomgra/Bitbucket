@@ -10,16 +10,17 @@ paths:
       parameters:
         - name: quantity
           in: query
-          description: Barcode for check
-          required: false
+          default: 1
+          description: Quantity of shipments created
+          required: true
           schema:
             type: number
       tags:
         - Shipments
-      summary: Add shipment to db using bloom filter
+      summary: Add shipments to db using bloom filter
       responses:
         '201':
-          description: Success adding shipment with bloom filter
+          description: Success adding shipments with bloom filter
           content:
             application/json:
               schema:
@@ -37,12 +38,14 @@ paths:
         - Shipments
       summary: Check barcode in DB with Bloom Filter
       parameters:
-        - name: sipmentId
-          in: path
+        - name: barcode
+          in: query
           required: true
           description: Barcode for check
           schema:
             type: string
+            minLength: 13
+            maxLength: 25
       responses:
         '200':
           description: Shipment with barcode found in DB using  bloom filter
@@ -69,15 +72,11 @@ components:
       type: object
       properties:
         message:
-          type: string
-          nullable: true
-    NotFoundError:
-      type: object
-      properies:
-        entityType:
+          description: Error message
           type: string
     Shipment:
       type: object
       properties:
         id:
+          description: Shipment Barcode 
           type: string

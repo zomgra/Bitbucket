@@ -15,6 +15,6 @@ Variant 2
 * Go to _http://localhost:5074/swagger/index.html_
 
 
-For wathing using RAM:
+For watching using RAM:
 
 _http://localhost:5074/health_

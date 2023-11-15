@@ -1,6 +1,6 @@
 ﻿namespace Bitbucket.Responces
 {
-    public class DomainErrorResponse
+    public class DomainError
     {
         public string Message { get; set; }
     }
