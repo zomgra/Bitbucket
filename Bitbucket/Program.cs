@@ -1,18 +1,17 @@
 using Bitbucket.Data;
 using Bitbucket.Middlewares;
 using Bitbucket.Services;
-using Bitbucket.SwaggerOptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 using Bitbucket.Memory;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 
 builder.Services.AddControllers(options =>
@@ -20,28 +19,17 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddHealthChecks()
-    .AddProcessAllocatedMemoryHealthCheck( 200, name: "200mb-memory-use", tags: new string[] {"More 200mb using"})
-    .AddCheck<MemoryHealthCheck>("memory", tags: new string[] {"memory"});
+    .AddProcessAllocatedMemoryHealthCheck(200, name: "200mb-memory-use", tags: new string[] { "More 200mb using" })
+    .AddCheck<MemoryHealthCheck>("memory", tags: new string[] { "memory" });
 
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.EnableAnnotations();
-
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
-});
-builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+builder.Services.AddSwaggerGen().AddSwaggerGenNewtonsoftSupport();
 builder.Services.AddApiVersioning(opt =>
 {
     opt.DefaultApiVersion = new ApiVersion(1, 0);
     opt.AssumeDefaultVersionWhenUnspecified = true;
     opt.ReportApiVersions = true;
-    //opt.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(),
-    //                                                new HeaderApiVersionReader("x-api-version"),
-    //                                                new MediaTypeApiVersionReader("x-api-version"));
 });
 
 builder.Services.AddVersionedApiExplorer(setup =>
@@ -59,7 +47,7 @@ builder.Services.AddTransient<BarCodeGenerator>();
 builder.Services.AddTransient<BloomFilterService>();
 builder.Services.AddTransient<ShipmentService>();
 
-builder.Services.AddDbContext<AppDbContext>(x=>x.UseInMemoryDatabase("BitBucket"));
+builder.Services.AddDbContext<AppDbContext>(x => x.UseInMemoryDatabase("BitBucket"));
 
 var app = builder.Build();
 
@@ -68,23 +56,49 @@ if (app.Environment.IsDevelopment())
 {
     var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
-        {
+    var versions = apiVersionDescriptionProvider.ApiVersionDescriptions
+        .Select(x => x.ApiVersion)
+        .Select(x => $"{x.MajorVersion}");
 
-            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
-                    description.GroupName.ToUpperInvariant());
+    var provider = new FileExtensionContentTypeProvider();
+    provider.Mappings[".yaml"] = "text/yaml";
+
+    app.UseStaticFiles(new StaticFileOptions()
+    {
+        ContentTypeProvider = provider,
+        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Swagger")),
+        RequestPath = "/CustomSwagger"
+    });
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        foreach (var version in versions)
+        {
+            c.SwaggerEndpoint($"/CustomSwagger/SwaggerV{version}.json", $"v{version}");
+            c.SwaggerEndpoint($"/CustomSwagger/SwaggerV{version}.yaml", $"v{version} (YAML)");
+        }
+    });
+    app.UseRouting();
+    app.UseEndpoints(end =>
+    {
+        foreach (var version in versions)
+        {
+            end.MapGet($"/CustomSwagger/SwaggerV{version}.json", async context =>
+            {
+                context.Response.ContentType = "application/json";
+                var json = await File.ReadAllTextAsync($"SwaggerV{version}.json");
+                await context.Response.WriteAsync(json);
+            });
+            end.MapGet($"/CustomSwagger/SwaggerV{version}.yaml", async context =>
+            {
+                context.Response.ContentType = "application/yaml";
+                var json = await File.ReadAllTextAsync($"SwaggerV{version}.yaml");
+                await context.Response.WriteAsync(json);
+            });
         }
     });
 }
-app.UseRouting();
 app.UseMiddleware<ErrorHandlerMiddleware>();
-
-app.UseAuthorization();
-
-
 
 app.MapControllers();
 app.MapHealthChecks("/health", new HealthCheckOptions

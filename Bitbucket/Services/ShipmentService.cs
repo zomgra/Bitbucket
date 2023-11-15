@@ -56,5 +56,22 @@ namespace Bitbucket.Services
 
             return shipment != null;
         }
+
+        public async Task<Shipment> Create(CancellationToken cancellationToken = default)
+        {
+            var barcode = _generator.GenerateBarCode(2, 2);
+            var shipment = new Shipment(barcode);
+            try
+            {
+                await _context.AddAsync(shipment, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch 
+            {
+                throw new DomainException("Error with saving data");
+            }
+
+            return shipment;
+        }
     }
 }

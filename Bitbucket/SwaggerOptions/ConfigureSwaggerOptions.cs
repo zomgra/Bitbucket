@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
+using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -38,11 +40,12 @@ namespace Bitbucket.SwaggerOptions
                 Version = desc.ApiVersion.ToString()
             };
 
+            info.SerializeAsYaml(OpenApiSpecVersion.OpenApi3_0);
+
             if (desc.IsDeprecated)
             {
                 info.Description += " Serdiuk Mykyta BitBucket";
             }
-
             return info;
         }
     }

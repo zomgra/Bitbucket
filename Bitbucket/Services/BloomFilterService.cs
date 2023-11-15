@@ -63,5 +63,10 @@ namespace Bitbucket.Services
 
             return true;
         }
+
+        public Task<Shipment> Create(CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

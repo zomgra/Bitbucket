@@ -1,0 +1,51 @@
+openapi: 3.0.1
+info:
+  title: Serdiuk Mykyta BitBucket
+  version: '2.0'
+servers:
+  - url: /api/v2
+paths:
+    post:
+      parameters:
+        - name: quantity
+          in: query
+          description: Barcode for check
+          required: false
+          schema:
+            type: number
+      tags:
+        - Shipments
+      summary: Add shipment to db using bloom filter
+      responses:
+        '201':
+          description: Success adding shipment with bloom filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shipment'
+        '500':
+          description: Problem on the server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          nullable: true
+    NotFoundError:
+      type: object
+      properies:
+        entityType:
+          type: string
+    Shipment:
+      type: object
+      properties:
+        id:
+          type: string

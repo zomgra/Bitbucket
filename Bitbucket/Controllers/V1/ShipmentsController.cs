@@ -8,7 +8,7 @@ namespace Bitbucket.Controllers.V1;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/shipments")]
+[Route("/shipments")]
 [Produces("application/json")]
 public class ShipmentsController : ControllerBase
 {
@@ -45,9 +45,9 @@ public class ShipmentsController : ControllerBase
         stopwatch.Stop();
         if (barcodeExist)
         {
-            return Ok(new ShipmentResponse {Time = stopwatch.ElapsedMilliseconds, Value = barcodeExist});
+            return Ok(new ShipmentResponse {Value = barcodeExist});
         }
-        return NotFound(new ShipmentResponse { Time = stopwatch.ElapsedMilliseconds, Value = false });
+        return NotFound(new ShipmentResponse { Value = false });
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class ShipmentsController : ControllerBase
 
         stopwatch.Stop();
 
-        return Created(Url.ActionLink(nameof(AddShipmentBloom)), new ShipmentResponse { Time = stopwatch.ElapsedMilliseconds, Value = shipment });
+        return Created(Url.ActionLink(nameof(AddShipmentBloom)), new ShipmentResponse { Value = shipment });
     }
 
     /// <summary>
@@ -95,6 +95,6 @@ public class ShipmentsController : ControllerBase
         }
 
         stopwatch.Stop();
-        return Ok(new ShipmentResponse { Value = true, Time = stopwatch.ElapsedMilliseconds});
+        return Ok(new ShipmentResponse { Value = true, });
     }
 }
