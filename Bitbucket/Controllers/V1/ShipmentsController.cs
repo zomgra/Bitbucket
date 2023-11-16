@@ -3,8 +3,6 @@ using Bitbucket.Responces;
 using Bitbucket.Services;
 using Microsoft.AspNetCore.Mvc;
 using Prometheus;
-using Swashbuckle.AspNetCore.Annotations;
-using System.Diagnostics;
 namespace Bitbucket.Controllers.V1;
 
 [ApiController]
@@ -31,23 +29,20 @@ public class ShipmentsController : ControllerBase
     /// <param name="barcode">Barcode for check</param>
     /// <param name="cancellationToken"></param>
     /// <returns>Have barcode in Data Base</returns>
-    [HttpGet()]
+    [HttpGet]
     [MapToApiVersion("1.0")]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, "Problem on the server", Type = typeof(DomainError))]
-    [SwaggerResponse(StatusCodes.Status404NotFound, "Shipment with barcode not found in DB using bloom filter", Type = typeof(ShipmentResponse))]
-    [SwaggerResponse(StatusCodes.Status200OK, "Shipment with barcode found in DB using bloom filter", Type = typeof(ShipmentResponse))]
-    public async Task<IActionResult> CheckBarcodeBloom([FromQuery]string barcode,
+    public async Task<IActionResult> CheckBarcodeBloom([FromQuery]string shimpentId,
         CancellationToken cancellationToken)
     {
         using (_prometheusService.CreateDurationOperation().NewTimer())
         {
-            var barcodeExist = await _bloomFilterService.Contains(barcode, cancellationToken);
+            var barcodeExist = await _bloomFilterService.Contains(shimpentId, cancellationToken);
 
             if (barcodeExist)
             {
                 return Ok(new ShipmentResponse {Value = barcodeExist});
             }
-            return NotFound(new DomainError { Message = $"Shipments with barcode: {barcode} - not found in DB"});
+            return NotFound(new DomainError { Message = $"Shipments with barcode: {shimpentId} - not found in DB"});
         }
     }
 
@@ -57,8 +52,7 @@ public class ShipmentsController : ControllerBase
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, "Problem on the server", Type = typeof(DomainError))]
-    [SwaggerResponse(StatusCodes.Status201Created, "Success adding shipment with bloom filter", Type = typeof(ShipmentResponse))]
+    [MapToApiVersion("1.0")]
     public async Task<IActionResult> AddShipment([FromQuery] int quantity, CancellationToken cancellationToken)
     {
         var massive = new List<Shipment>();

@@ -10,6 +10,7 @@ COPY ["Bitbucket/Bitbucket.csproj", "Bitbucket/"]
 RUN dotnet restore "Bitbucket/Bitbucket.csproj"
 COPY . .
 WORKDIR "/src/Bitbucket"
+COPY "/Bitbucket/Swagger" "/app/Swagger"
 RUN dotnet build "Bitbucket.csproj" -c Release -o /app/build
 
 FROM build AS publish
@@ -18,4 +19,5 @@ RUN dotnet publish "Bitbucket.csproj" -c Release -o /app/publish /p:UseAppHost=f
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY "/Bitbucket/Swagger" "/app/Swagger"
 ENTRYPOINT ["dotnet", "Bitbucket.dll"]

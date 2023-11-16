@@ -38,7 +38,7 @@ paths:
         - Shipments
       summary: Check barcode in DB with Bloom Filter
       parameters:
-        - name: barcode
+        - name: shimpentId
           in: query
           required: true
           description: Barcode for check
@@ -77,6 +77,6 @@ components:
     Shipment:
       type: object
       properties:
-        id:
+        barcode:
           description: Shipment Barcode 
           type: string

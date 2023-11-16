@@ -1,11 +1,19 @@
 # Installing and Running Program
 
+Running MSSQL using docker
+
+```docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrongPassword123" -e "MSSQL_PID=Developer" -p 1433:1433  --name sql1 --hostname sql1 -d mcr.microsoft.com/mssql/server:2022-preview-ubuntu-22.04```
+
+Next you should run dotnet app
+
 Variant 1 for user, who install _dotnet_
 
 * Clone git project
 * Change direction to _/Bitbucket/_ 
 * Use in console ```dotnet run```
 * Go to _http://localhost:5074/swagger/index.html_
+
+
 
 Variant 2
 
@@ -15,6 +23,6 @@ Variant 2
 * Go to _http://localhost:5074/swagger/index.html_
 
 
-For watching using RAM:
+For watching metrics:
 
-_http://localhost:5074/health_
+_http://localhost:5074/metrics_

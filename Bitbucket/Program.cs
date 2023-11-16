@@ -10,7 +10,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.StaticFiles;
 using Bitbucket.HealthCheck;
 using Prometheus;
-
+using BloomFilter;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +43,7 @@ builder.Services.AddTransient<BarCodeGenerator>();
 builder.Services.AddTransient<BloomFilterService>();
 builder.Services.AddTransient<PrometheusService>();
 
-builder.Services.AddDbContext<AppDbContext>(x => x.UseInMemoryDatabase("BitBucket"));
+builder.Services.AddDbContext<AppDbContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL")));
 
 var app = builder.Build();
 
@@ -73,7 +73,6 @@ if (app.Environment.IsDevelopment())
         foreach (var version in versions)
         {
             c.SwaggerEndpoint($"/CustomSwagger/SwaggerV{version}.yaml", $"v{version} (YAML)");
-            c.SwaggerEndpoint($"/CustomSwagger/SwaggerV{version}.json", $"v{version}");
         }
     });
     app.UseEndpoints(end =>
@@ -84,12 +83,6 @@ if (app.Environment.IsDevelopment())
             {
                 context.Response.ContentType = "application/yaml";
                 var json = await File.ReadAllTextAsync($"SwaggerV{version}.yaml");
-                await context.Response.WriteAsync(json);
-            });
-            end.MapGet($"/CustomSwagger/SwaggerV{version}.json", async context =>
-            {
-                context.Response.ContentType = "application/json";
-                var json = await File.ReadAllTextAsync($"SwaggerV{version}.json");
                 await context.Response.WriteAsync(json);
             });
         }
@@ -114,5 +107,8 @@ app.UseEndpoints(x =>
 {
     x.MapMetrics();
 });
+
+var bloomFilterService = app.Services.CreateScope().ServiceProvider.GetRequiredService<BloomFilterService>();
+await bloomFilterService.InjectFromDB();
 
 app.Run();
