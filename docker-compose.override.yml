@@ -31,7 +31,9 @@ services:
      - mynetwork
 
   aspnet-app:
-    image: my-bitbucket-app
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: my-aspnet-app
     ports:
       - "5074:80"

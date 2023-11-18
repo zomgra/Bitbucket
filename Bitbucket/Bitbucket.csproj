@@ -9,7 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Swagger\SwaggerV2.yaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Swagger\SwaggerV2.yaml" />
     <Content Include="Swagger\SwaggerV1.yaml" />
+    <Content Include="..\prom\prometheus.yml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,10 +42,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\V2\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>

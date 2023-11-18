@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using Prometheus;
 using System.Diagnostics;
 
-namespace Bitbucket.Controllers.V1;
+namespace Bitbucket.Controllers.V2;
 
 [ApiController]
 [Route("api/v{version:apiVersion}/shipments/")]
-[ApiVersion("1.0")]
+[ApiVersion("2.0")]
 public class ShipmentsController : ControllerBase
 {
     private readonly BloomFilterService _bloomFilterService;
@@ -32,7 +32,7 @@ public class ShipmentsController : ControllerBase
     /// <param name="cancellationToken"></param>
     /// <returns>Have barcode in Data Base</returns>
     [HttpGet]
-    [MapToApiVersion("1.0")]
+    [MapToApiVersion("2.0")]
     public async Task<IActionResult> CheckBarcodeBloom([FromQuery] string shimpentId,
         CancellationToken cancellationToken)
     {
@@ -53,7 +53,7 @@ public class ShipmentsController : ControllerBase
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost]
-    [MapToApiVersion("1.0")]
+    [MapToApiVersion("2.0")]
     public async Task<IActionResult> AddShipment([FromQuery] int quantity, CancellationToken cancellationToken)
     {
         var massive = new List<Shipment>();
@@ -69,6 +69,5 @@ public class ShipmentsController : ControllerBase
         stopwatcher.Stop();
         counter.IncTo(stopwatcher.ElapsedMilliseconds);
         return Created(Url.ActionLink(nameof(AddShipment)), new ShipmentResponse { Value = massive });
-
     }
 }

@@ -10,7 +10,8 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.StaticFiles;
 using Bitbucket.HealthCheck;
 using Prometheus;
-using BloomFilter;
+using Bitbucket.Helpers;
+using Bitbucket.Controllers.V1;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,12 +21,23 @@ builder.Services.AddHealthChecks()
     .AddCheck<BloomFilterHealthCheck>("bloomfilter-healthcheck");
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen().AddSwaggerGenNewtonsoftSupport();
-builder.Services.AddApiVersioning(opt =>
+builder.Services.AddSwaggerGen(options =>
 {
-    opt.DefaultApiVersion = new ApiVersion(1, 0);
-    opt.AssumeDefaultVersionWhenUnspecified = true;
-    opt.ReportApiVersions = true;
+    foreach (var version in ControllerVersions.GetControllerVersions(typeof(ShipmentsController)))
+    {
+        options.SwaggerDoc($"v{version} (YAML)", new()
+        {
+            Version = version,
+        });
+    }
+
+}).AddSwaggerGenNewtonsoftSupport();
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
 });
 
 builder.Services.AddVersionedApiExplorer(setup =>
@@ -100,6 +112,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 
 app.UseHttpMetrics(options =>
 {
+    options.ReduceStatusCodeCardinality();
     options.AddCustomLabel("host", context => context.Request.Host.Host);
 });
 
@@ -109,6 +122,6 @@ app.UseEndpoints(x =>
 });
 
 var bloomFilterService = app.Services.CreateScope().ServiceProvider.GetRequiredService<BloomFilterService>();
-await bloomFilterService.InjectFromDB();
+//await bloomFilterService.InjectFromDB();
 
 app.Run();

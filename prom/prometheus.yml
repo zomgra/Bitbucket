@@ -1,5 +1,4 @@
-﻿
-global:
+﻿global:
   scrape_interval: 15s
   scrape_timeout: 10s
   evaluation_interval: 15s
@@ -18,5 +17,4 @@ scrape_configs:
   metrics_path: /metrics  
   scheme: http  
   static_configs:  
-  - targets:  
-    - host.docker.internal:5054
+  - targets:  ['host.docker.internal:5074', 'host.docker.internal:30090']

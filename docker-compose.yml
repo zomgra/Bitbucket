@@ -1,0 +1,59 @@
+﻿version: '3.4'
+
+services:
+  prometheus:
+    image: ubuntu/prometheus
+    container_name: dev_prometheus
+    ports:
+      - "30090:9090"
+    environment:
+      - TZ=UTC
+    volumes:
+      - ./prom/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  aspnet-app:
+    container_name: aspnet-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5074:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://localhost:5074
+      - ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS=true
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - NUGET_PACKAGES=/root/.nuget/fallbackpackages
+      - NUGET_FALLBACK_PACKAGES=/root/.nuget/fallbackpackages
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - DOTNET_VERSION=6.0.24
+      - ASPNET_VERSION=6.0.24
+    networks:
+      - mynetwork
+
+  grafana:
+    image: grafana/grafana
+    container_name: dev_grafana
+    ports:
+      - "30091:3000"
+    volumes:
+      - ./grafana-data/data:/var/lib/grafana
+
+  mssql:
+    image: zomgra/sql1
+    container_name: dev_mssql
+    ports:
+      - "1433:1433"
+    environment:
+     - ACCEPT_EULA=Y
+     - SA_PASSWORD=YourStrongPassword123
+     - MSSQL_PID=Developer
+    networks:
+     - mynetwork
+
+
+networks:
+  mynetwork:  
+    driver: bridge
