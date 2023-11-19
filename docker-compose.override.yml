@@ -34,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: my-aspnet-app
+    container_name: aspnet-app
     ports:
       - "5074:80"
     environment:
