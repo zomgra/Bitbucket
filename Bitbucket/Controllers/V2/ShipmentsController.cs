@@ -1,4 +1,5 @@
-﻿using Bitbucket.Models;
+﻿using Bitbucket.Exceptions;
+using Bitbucket.Models;
 using Bitbucket.Responces;
 using Bitbucket.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +57,9 @@ public class ShipmentsController : ControllerBase
     [MapToApiVersion("2.0")]
     public async Task<IActionResult> AddShipment([FromQuery] int quantity, CancellationToken cancellationToken)
     {
+        if (quantity < 0)
+            throw new DomainException($"{nameof(quantity)} must by non negativ");
+
         var massive = new List<Shipment>();
         var counter = _prometheusService.CreateDurationOperation();
         var stopwatcher = Stopwatch.StartNew();

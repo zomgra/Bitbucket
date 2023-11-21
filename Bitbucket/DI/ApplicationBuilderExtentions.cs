@@ -1,4 +1,5 @@
-﻿using HealthChecks.UI.Client;
+﻿using Bitbucket.Middlewares;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.StaticFiles;
@@ -32,7 +33,6 @@ namespace Bitbucket.DI
 
 
 
-            app.UseRouting();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
@@ -41,6 +41,8 @@ namespace Bitbucket.DI
                     c.SwaggerEndpoint($"/CustomSwagger/SwaggerV{version}.yaml", $"v{version} (YAML)");
                 }
             });
+            app.UseRouting();
+            app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseEndpoints(end =>
             {
                 foreach (var version in versions)

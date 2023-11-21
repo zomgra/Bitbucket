@@ -1,5 +1,7 @@
 ﻿using Bitbucket.Exceptions;
 using Bitbucket.Responces;
+using Bitbucket.Services;
+using Prometheus;
 
 namespace Bitbucket.Middlewares
 {
@@ -12,7 +14,7 @@ namespace Bitbucket.Middlewares
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, ILogger<ErrorHandlerMiddleware> logger)
+        public async Task InvokeAsync(HttpContext context, ILogger<ErrorHandlerMiddleware> logger, PrometheusService prometheusService)
         {
             try
             {
@@ -20,12 +22,16 @@ namespace Bitbucket.Middlewares
             }
             catch(DomainException ex)
             {
-                logger.LogError("Error on the domain: {message}", ex.Message);
+                prometheusService.ErrorCounter.Inc();
                 context.Response.StatusCode = ex.StatusCode;
                 await context.Response.WriteAsJsonAsync(new DomainError
                 {
                     Message = ex.Message 
                 });
+            }
+            catch
+            {
+                prometheusService.ErrorCounter.Inc();
             }
         }
     }

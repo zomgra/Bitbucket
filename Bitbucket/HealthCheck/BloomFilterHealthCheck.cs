@@ -14,10 +14,12 @@ namespace Bitbucket.HealthCheck
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            await Task.CompletedTask;
-            if (_filter is null)
-                return HealthCheckResult.Unhealthy();
-            return HealthCheckResult.Healthy();
+            return await Task.Run(() =>
+            {
+                if (_filter is null)
+                    return HealthCheckResult.Unhealthy();
+                return HealthCheckResult.Healthy();
+            });
         }
     }
 }

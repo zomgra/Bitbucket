@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Bitbucket.Helpers
 {
-    public static class ControllerVersions
+    public static class ControllerVersionsHelper
     {
         public static IEnumerable<string> GetControllerVersions<T>(T foundedControllerType) where T : Type
         {

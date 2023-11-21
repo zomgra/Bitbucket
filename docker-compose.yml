@@ -1,6 +1,7 @@
 ﻿version: '3.4'
 
 services:
+
   prometheus:
     image: ubuntu/prometheus
     container_name: dev_prometheus
@@ -10,15 +11,30 @@ services:
       - TZ=UTC
     volumes:
       - ./prom/prometheus.yml:/etc/prometheus/prometheus.yml
+  dev_mssql:
+    image: zomgra/sql1
+    container_name: dev_mssql
+    ports:
+      - "1433:1433"
+    environment:
+     - ACCEPT_EULA=Y
+     - SA_PASSWORD=YourStrongPassword123
+     - MSSQL_PID=Developer
+    networks:
+     - mynetwork
 
   aspnet-app:
     container_name: aspnet-app
+    command: dockerize -wait http://dev_mssql:30031 -timeout 30s
+    depends_on:
+      - dev_mssql
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "5074:80"
     environment:
+      - CONNECTION_STRING="Server = dev_mssql,1433;Database=msdb;User Id=SA;Password=YourStrongPassword123"
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://localhost:5074
       - ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS=true
@@ -41,17 +57,7 @@ services:
     volumes:
       - ./grafana-data/data:/var/lib/grafana
 
-  mssql:
-    image: zomgra/sql1
-    container_name: dev_mssql
-    ports:
-      - "1433:1433"
-    environment:
-     - ACCEPT_EULA=Y
-     - SA_PASSWORD=YourStrongPassword123
-     - MSSQL_PID=Developer
-    networks:
-     - mynetwork
+ 
 
 
 networks:

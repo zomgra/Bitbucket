@@ -15,7 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    foreach (var version in ControllerVersions.GetControllerVersions(typeof(ShipmentsController)))
+    foreach (var version in ControllerVersionsHelper.GetControllerVersions(typeof(ShipmentsController)))
     {
         options.SwaggerDoc($"v{version} (YAML)", new()
         {
@@ -38,9 +38,9 @@ if (app.Environment.IsDevelopment())
     app.UseStaticFileWithYAMLMapper();
     app.UseSwaggerWithVersionsEndpoint();
 }
-app.UseMiddleware<ErrorHandlerMiddleware>();
-
 app.MapControllers();
+
+
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     Predicate = _ => true,
@@ -51,6 +51,7 @@ app.UseHttpMetrics(options =>
 {
     options.ReduceStatusCodeCardinality();
 });
+
 
 app.UseEndpoints(x =>
 {

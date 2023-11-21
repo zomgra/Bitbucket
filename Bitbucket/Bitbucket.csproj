@@ -15,7 +15,6 @@
   <ItemGroup>
     <Content Include="Swagger\SwaggerV2.yaml" />
     <Content Include="Swagger\SwaggerV1.yaml" />
-    <Content Include="..\prom\prometheus.yml" />
   </ItemGroup>
 
   <ItemGroup>

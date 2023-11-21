@@ -44,8 +44,6 @@ paths:
           description: Barcode for check
           schema:
             type: string
-            minLength: 13
-            maxLength: 25
       responses:
         '200':
           description: Shipment with barcode found in DB using  bloom filter

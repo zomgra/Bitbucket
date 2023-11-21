@@ -45,6 +45,7 @@ public class ShipmentsController : ControllerBase
             }
             return NotFound(new DomainError { Message = $"Shipments with barcode: {shimpentId} - not found in DB" });
         }
+
     }
 
     /// <summary>
