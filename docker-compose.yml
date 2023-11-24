@@ -10,7 +10,7 @@ services:
     environment:
       - TZ=UTC
     volumes:
-      - ./prom/prometheus.yml:/etc/prometheus/prometheus.yml
+      - .Infrastructure/prom/prometheus.yml:/etc/Infrastructure/prometheus/prometheus.yml
   dev_mssql:
     image: zomgra/sql1
     container_name: dev_mssql
@@ -55,7 +55,7 @@ services:
     ports:
       - "30091:3000"
     volumes:
-      - ./grafana-data/data:/var/lib/grafana
+      - .Infrastructure/grafana-data/data:/var/lib/grafana
 
  
 

@@ -1,6 +1,4 @@
-﻿using Bitbucket.Responces;
-
-namespace Bitbucket.Exceptions
+﻿namespace Bitbucket.Exceptions
 {
     public class DomainException : Exception
     {

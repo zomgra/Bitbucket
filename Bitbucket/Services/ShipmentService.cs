@@ -2,37 +2,28 @@
 using Bitbucket.Exceptions;
 using Bitbucket.Models;
 using Microsoft.EntityFrameworkCore;
-using BloomFilter;
 using Bitbucket.Models.Interfaces;
 
 namespace Bitbucket.Services
 {
-    public class BloomFilterService : IBloomFilterRepository<Shipment>
+    public class ShipmentService : IShipmentRepository<Shipment>
     {
         private readonly AppDbContext _context;
         private readonly BarCodeGenerator _generator;
-        private readonly IBloomFilter _bloomFilter;
 
-        public BloomFilterService(AppDbContext context,
-            BarCodeGenerator barCodeGenerator,
-            IBloomFilter filter,
-            PrometheusService prometheusService)
+        public ShipmentService(AppDbContext context,
+            BarCodeGenerator barCodeGenerator)
         {
             _context = context;
             _generator = barCodeGenerator;
-            _bloomFilter = filter;
         }
 
         public async Task Add(Shipment value, CancellationToken cancellationToken)
         {
-            HealthCheckBloomFilter();
-
             try
             {
                 var barcode = _generator.GenerateBarCode(2, 2);
                 value.Barcode = barcode;
-
-                _bloomFilter.Add(value.Barcode);
 
                 await _context.AddAsync(value, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
@@ -41,7 +32,6 @@ namespace Bitbucket.Services
             {
                 throw new DomainException($"Problem with adding shipments: {e?.InnerException?.Message}");
             }
-
         }
 
         public async Task<bool> Contains(string barcode, CancellationToken cancellationToken)
@@ -50,12 +40,6 @@ namespace Bitbucket.Services
             {
                 throw new DomainException("Barcode must be 13-25 length", 400);
             }
-            if (_bloomFilter is null)
-                return false;
-
-            if (!_bloomFilter.Contains(barcode))
-                return false;
-
 
             var shipment = await _context.Shipments.FirstOrDefaultAsync(x => x.Barcode == barcode, cancellationToken);
             if (shipment == null)
@@ -66,11 +50,9 @@ namespace Bitbucket.Services
 
         public async Task<Shipment> Create(CancellationToken cancellationToken = default)
         {
-
             var barcode = _generator.GenerateBarCode(2, 2);
             var shipment = new Shipment(barcode);
 
-            await _bloomFilter.AddAsync(shipment.Barcode);
             try
             {
                 await _context.AddAsync(shipment, cancellationToken);
@@ -81,31 +63,11 @@ namespace Bitbucket.Services
                 throw new DomainException("Error with saving data");
             }
             return shipment;
-
         }
 
-        public async Task InjectFromDB()
+        public Task InjectFromDB()
         {
-            _bloomFilter.Clear();
-            try
-            {
-                foreach (var item in _context.Shipments.Select(x => x.Barcode).ToList())
-                {
-                    await _bloomFilter.AddAsync(item);
-                }
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
-        private void HealthCheckBloomFilter()
-        {
-            if (_bloomFilter is null)
-            {
-                throw new DomainException("Bloom Filter haven`t instance");
-            }
+            return Task.CompletedTask;
         }
     }
 }

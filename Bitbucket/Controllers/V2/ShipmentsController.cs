@@ -1,5 +1,6 @@
 ﻿using Bitbucket.Exceptions;
 using Bitbucket.Models;
+using Bitbucket.Models.Interfaces;
 using Bitbucket.Responces;
 using Bitbucket.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +14,12 @@ namespace Bitbucket.Controllers.V2;
 [ApiVersion("2.0")]
 public class ShipmentsController : ControllerBase
 {
-    private readonly BloomFilterService _bloomFilterService;
+    private readonly IRepository<Shipment> _bloomFilterService;
     private readonly PrometheusService _prometheusService;
     private readonly ILogger<ShipmentsController> _logger;
 
     public ShipmentsController(
-        BloomFilterService bloomFilterService,
+        IRepository<Shipment> bloomFilterService,
         ILogger<ShipmentsController> logger,
         PrometheusService prometheusService)
     {

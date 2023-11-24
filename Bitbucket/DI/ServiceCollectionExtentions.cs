@@ -3,7 +3,6 @@ using Bitbucket.HealthCheck;
 using Bitbucket.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Prometheus;
 
 namespace Bitbucket.DI

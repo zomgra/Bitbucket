@@ -7,6 +7,7 @@ EXPOSE 80
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Bitbucket/Bitbucket.csproj", "Bitbucket/"]
+COPY ["Bitbucket/Infastructure", "Infastructure/"]
 RUN dotnet restore "Bitbucket/Bitbucket.csproj"
 COPY . .
 WORKDIR "/src/Bitbucket"

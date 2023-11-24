@@ -1,6 +1,7 @@
 ﻿using Bitbucket.Models;
 using Bitbucket.Responces;
 using Bitbucket.Services;
+using Bitbucket.Services.Fabrics;
 using Microsoft.AspNetCore.Mvc;
 using Prometheus;
 using System.Diagnostics;
@@ -12,16 +13,16 @@ namespace Bitbucket.Controllers.V1;
 [ApiVersion("1.0")]
 public class ShipmentsController : ControllerBase
 {
-    private readonly BloomFilterService _bloomFilterService;
+    private readonly BloomFilterServiceFactory _bloomFilterFactory;
     private readonly PrometheusService _prometheusService;
     private readonly ILogger<ShipmentsController> _logger;
 
     public ShipmentsController(
-        BloomFilterService bloomFilterService,
+        BloomFilterServiceFactory bloomFilterFactory,
         ILogger<ShipmentsController> logger,
         PrometheusService prometheusService)
     {
-        _bloomFilterService = bloomFilterService;
+        _bloomFilterFactory = bloomFilterFactory;
         _logger = logger;
         _prometheusService = prometheusService;
     }
@@ -38,7 +39,8 @@ public class ShipmentsController : ControllerBase
     {
         using (_prometheusService.CreateDurationOperation().NewTimer())
         {
-            var barcodeExist = await _bloomFilterService.Contains(shimpentId, cancellationToken);
+            var shipmentRepository = _bloomFilterFactory.CreateRepository();
+            var barcodeExist = await shipmentRepository.Contains(shimpentId, cancellationToken);
             if (barcodeExist)
             {
                 return Ok(new ShipmentResponse { Value = barcodeExist });
@@ -57,18 +59,16 @@ public class ShipmentsController : ControllerBase
     [MapToApiVersion("1.0")]
     public async Task<IActionResult> AddShipment([FromQuery] int quantity, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Blabla");
+        _logger.LogError("Blabla");
         var massive = new List<Shipment>();
-        var counter = _prometheusService.CreateDurationOperation();
-        var stopwatcher = Stopwatch.StartNew();
-
+        var shipmentRepository = _bloomFilterFactory.CreateRepository();
+        
         for (int i = 0; i < quantity; i++)
         {
-            _logger.LogInformation("Added {i}", i);
-            var shipment = await _bloomFilterService.Create(cancellationToken);
+            var shipment = await shipmentRepository.Create(cancellationToken);
             massive.Add(shipment);
         }
-        stopwatcher.Stop();
-        counter.IncTo(stopwatcher.ElapsedMilliseconds);
         return Created(Url.ActionLink(nameof(AddShipment)), new ShipmentResponse { Value = massive });
 
     }
