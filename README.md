@@ -2,13 +2,6 @@
 
 Running docker-compose using docker
 
-```docker compose up -d```
-
-```docker build -t my-bitbucket-app .
+```docker compose up --build -d```
 
 * Go to _http://localhost:5074/swagger/index.html_
-
-
-For watching metrics:
-
-_http://localhost:5074/metrics_

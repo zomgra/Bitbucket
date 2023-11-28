@@ -33,13 +33,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /shipments/{shimpentId}: 
     get:
       tags:
         - Shipments
       summary: Check barcode in DB with Bloom Filter
       parameters:
         - name: shimpentId
-          in: query
+          in: path
           required: true
           description: Barcode for check
           schema:

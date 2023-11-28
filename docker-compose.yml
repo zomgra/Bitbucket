@@ -25,7 +25,7 @@ services:
 
   aspnet-app:
     container_name: aspnet-app
-    command: dockerize -wait http://dev_mssql:30031 -timeout 30s
+    command: docker wait dev_mssql
     depends_on:
       - dev_mssql
     build:

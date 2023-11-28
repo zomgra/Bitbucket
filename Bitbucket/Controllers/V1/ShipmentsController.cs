@@ -32,9 +32,9 @@ public class ShipmentsController : ControllerBase
     /// <param name="barcode">Barcode for check</param>
     /// <param name="cancellationToken"></param>
     /// <returns>Have barcode in Data Base</returns>
-    [HttpGet]
+    [HttpGet("{shimpentId}")]
     [MapToApiVersion("1.0")]
-    public async Task<IActionResult> CheckBarcodeBloom([FromQuery] string shimpentId,
+    public async Task<IActionResult> CheckBarcodeBloom(string shimpentId,
         CancellationToken cancellationToken)
     {
         using (_prometheusService.CreateDurationOperation().NewTimer())
