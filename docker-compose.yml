@@ -55,7 +55,7 @@ services:
     ports:
       - "30091:3000"
     volumes:
-      - .Infrastructure/grafana-data/data:/var/lib/grafana
+      - /Infrastructure/grafana-data/data:/var/lib/grafana
 
  
 
