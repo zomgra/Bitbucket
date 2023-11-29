@@ -26,6 +26,7 @@ services:
   aspnet-app:
     container_name: aspnet-app
     command: docker wait dev_mssql
+    restart: always
     depends_on:
       - dev_mssql
     build:
@@ -34,7 +35,8 @@ services:
     ports:
       - "5074:80"
     environment:
-      - CONNECTION_STRING="Server = dev_mssql,1433;Database=msdb;User Id=SA;Password=YourStrongPassword123"
+      - DB_CONNECT_TRY=3
+      - DB_CONNECT_DELAY=10000
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://localhost:5074
       - ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS=true
@@ -55,10 +57,10 @@ services:
     ports:
       - "30091:3000"
     volumes:
-      - /Infrastructure/grafana-data/data:/var/lib/grafana
+      - grafana-storage:/var/lib/grafana
 
- 
-
+volumes:
+  grafana-storage:
 
 networks:
   mynetwork:  

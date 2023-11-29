@@ -10,10 +10,10 @@ namespace Bitbucket.Services
             var summary = Metrics.CreateSummary(name, description);
             summary.Observe(data);
         }
-        public Counter CreateDurationOperation() =>
-            Metrics.CreateCounter("duartion_executing_operation", "How long time executing action", new CounterConfiguration()
+        public Counter CreateDurationOperation(string name, string desc = "") =>
+            Metrics.CreateCounter(name, desc, new CounterConfiguration()
             {
-                LabelNames = new[] { "duartion_executing_operation" }
+                LabelNames = new[] { name }
             });
     }
 }

@@ -4,7 +4,6 @@ using Bitbucket.Services;
 using Bitbucket.Services.Fabrics;
 using Microsoft.AspNetCore.Mvc;
 using Prometheus;
-using System.Diagnostics;
 
 namespace Bitbucket.Controllers.V1;
 
@@ -15,29 +14,27 @@ public class ShipmentsController : ControllerBase
 {
     private readonly BloomFilterServiceFactory _bloomFilterFactory;
     private readonly PrometheusService _prometheusService;
+    private readonly BarCodeGenerator _barCodeGenerator;
     private readonly ILogger<ShipmentsController> _logger;
 
     public ShipmentsController(
         BloomFilterServiceFactory bloomFilterFactory,
         ILogger<ShipmentsController> logger,
-        PrometheusService prometheusService)
+        PrometheusService prometheusService,
+        BarCodeGenerator barCodeGenerator)
     {
         _bloomFilterFactory = bloomFilterFactory;
         _logger = logger;
         _prometheusService = prometheusService;
+        _barCodeGenerator = barCodeGenerator;
     }
-    /// <summary>
-    /// Check barcode in DB with Bloom Filter
-    /// </summary>
-    /// <param name="barcode">Barcode for check</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns>Have barcode in Data Base</returns>
+
     [HttpGet("{shimpentId}")]
     [MapToApiVersion("1.0")]
     public async Task<IActionResult> CheckBarcodeBloom(string shimpentId,
         CancellationToken cancellationToken)
     {
-        using (_prometheusService.CreateDurationOperation().NewTimer())
+        using (_prometheusService.CreateDurationOperation("duartion_executing_operation_checkbarcode", "How long time executing action").NewTimer())
         {
             var shipmentRepository = _bloomFilterFactory.CreateRepository();
             var barcodeExist = await shipmentRepository.Contains(shimpentId, cancellationToken);
@@ -47,29 +44,25 @@ public class ShipmentsController : ControllerBase
             }
             return NotFound(new DomainError { Message = $"Shipments with barcode: {shimpentId} - not found in DB" });
         }
-
     }
 
-    /// <summary>
-    /// Add shipment to db using bloom filter
-    /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpPost]
     [MapToApiVersion("1.0")]
     public async Task<IActionResult> AddShipment([FromQuery] int quantity, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Blabla");
-        _logger.LogError("Blabla");
-        var massive = new List<Shipment>();
-        var shipmentRepository = _bloomFilterFactory.CreateRepository();
-        
-        for (int i = 0; i < quantity; i++)
+        using (_prometheusService.CreateDurationOperation("duartion_executing_operation_add_shipments").NewTimer())
         {
-            var shipment = await shipmentRepository.Create(cancellationToken);
-            massive.Add(shipment);
-        }
-        return Created(Url.ActionLink(nameof(AddShipment)), new ShipmentResponse { Value = massive });
 
+            var massive = new List<Shipment>();
+            var shipmentRepository = _bloomFilterFactory.CreateRepository();
+
+            for (int i = 0; i < quantity; i++)
+            {
+                var shipment = new Shipment(_barCodeGenerator.GenerateBarCode(2, 2));
+                await shipmentRepository.Add(shipment, cancellationToken);
+                massive.Add(shipment);
+            }
+            return Created(Url.ActionLink(nameof(AddShipment)), new ShipmentResponse { Value = massive });
+        }
     }
 }

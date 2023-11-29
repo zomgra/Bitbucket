@@ -8,14 +8,23 @@ using Bitbucket.DI;
 using Bitbucket.Models.Interfaces;
 using Bitbucket.Models;
 using Bitbucket.Services.Fabrics;
-using Microsoft.Extensions.Configuration;
 using Bitbucket.Workers;
-using Microsoft.Extensions.Logging;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
 
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
+
+builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -35,10 +44,11 @@ builder.Services.AddTransient<IBloomFilterRepository<Shipment>, BloomFilterServi
 builder.Services.AddSingleton<BloomFilterServiceFactory>();
 
 builder.Services.Configure<HealthCheckOptions>(builder.Configuration.GetSection("HealthCheckOptions"));
-builder.Services.AddHostedService<BloomFilterInitializerWorker>();
 
-builder.Services.AddAppDbContext(builder.Configuration)
-    .AddVersioning()
+
+await builder.Services.AddAppDbContext(builder.Configuration);
+
+    builder.Services.AddVersioning()
     .AddCustomHealthCheck(builder.Configuration)
     .AddServices();
 
@@ -51,7 +61,7 @@ if (isDocker)
         ? false
         : true).AddConsole();
 }
-
+builder.Services.AddHostedService<BloomFilterInitializerWorker>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -61,7 +71,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerWithVersionsEndpoint();
 }
 app.MapControllers();
-
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
@@ -73,7 +82,6 @@ app.UseHttpMetrics(options =>
 {
     options.ReduceStatusCodeCardinality();
 });
-
 
 app.UseEndpoints(x =>
 {
