@@ -5,11 +5,11 @@ using Bitbucket.Services.Fabrics;
 using Microsoft.AspNetCore.Mvc;
 using Prometheus;
 
-namespace Bitbucket.Controllers.V1;
+namespace Bitbucket.Controllers.V2;
 
 [ApiController]
 [Route("api/v{version:apiVersion}/shipments/")]
-[ApiVersion("1.0")]
+[ApiVersion("2.0")]
 public class ShipmentsController : ControllerBase
 {
     private readonly BloomFilterServiceFactory _bloomFilterFactory;
@@ -30,7 +30,6 @@ public class ShipmentsController : ControllerBase
     }
 
     [HttpGet("{shimpentId}")]
-    [MapToApiVersion("1.0")]
     public async Task<IActionResult> CheckBarcodeBloom(string shimpentId,
         CancellationToken cancellationToken)
     {
@@ -47,7 +46,6 @@ public class ShipmentsController : ControllerBase
     }
 
     [HttpPost]
-    [MapToApiVersion("1.0")]
     public async Task<IActionResult> AddShipment([FromQuery] int quantity, CancellationToken cancellationToken)
     {
         using (_prometheusService.CreateDurationOperation("duartion_executing_operation_add_shipments").NewTimer())
@@ -56,7 +54,7 @@ public class ShipmentsController : ControllerBase
             var massive = new List<Shipment>();
             var shipmentRepository = _bloomFilterFactory.CreateRepository();
 
-            for (   int i = 0; i < quantity; i++)
+            for (int i = 0; i < quantity; i++)
             {
                 var shipment = new Shipment(_barCodeGenerator.GenerateBarCode(2, 2));
                 await shipmentRepository.Add(shipment, cancellationToken);

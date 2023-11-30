@@ -1,5 +1,4 @@
-﻿
-using Bitbucket.Models;
+﻿using Bitbucket.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bitbucket.Data

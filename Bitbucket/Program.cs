@@ -10,6 +10,7 @@ using Bitbucket.Models;
 using Bitbucket.Services.Fabrics;
 using Bitbucket.Workers;
 using Serilog;
+using Bitbucket.Controllers.V2;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -29,7 +30,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    foreach (var version in ControllerVersionsHelper.GetControllerVersions(typeof(ShipmentsController)))
+    foreach (var version in ControllerVersionsHelper.GetControllerVersions())
     {
         options.SwaggerDoc($"v{version} (YAML)", new()
         {
@@ -46,7 +47,7 @@ builder.Services.AddSingleton<BloomFilterServiceFactory>();
 builder.Services.Configure<HealthCheckOptions>(builder.Configuration.GetSection("HealthCheckOptions"));
 
 
-await builder.Services.AddAppDbContext(builder.Configuration);
+builder.Services.AddAppDbContext(builder.Configuration);
 
     builder.Services.AddVersioning()
     .AddCustomHealthCheck(builder.Configuration)

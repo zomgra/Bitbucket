@@ -24,28 +24,36 @@ namespace Bitbucket.DI
             return services;
         }
 
-        public static async Task<IServiceCollection> AddAppDbContext(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddAppDbContext(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("MSSQL");
-            var dbConnectTry = int.Parse(Environment.GetEnvironmentVariable("DB_CONNECT_TRY"));
-            var dbConnectDelay = int.Parse(Environment.GetEnvironmentVariable("DB_CONNECT_DELAY"));
+            string dbConnectTryString = Environment.GetEnvironmentVariable("DB_CONNECT_TRY");
+            int dbConnectTry = 3;
+            if (dbConnectTryString != null)
+                dbConnectTry = int.TryParse(dbConnectTryString, out var result) ? result : 3;
             
-            for (int i = 0; i < dbConnectTry; i++)
+            var dbConnectDelayString = Environment.GetEnvironmentVariable("DB_CONNECT_DELAY");
+            var dbConnectDelay = 10000;
+            if(dbConnectDelayString != null)
+                dbConnectDelay = int.TryParse(dbConnectTryString, out int result) ? result : 10000; 
+
+            Log.Information("Connection string: {string}", connectionString);
+            try
             {
-                try
+                services.AddDbContext<AppDbContext>(x => x.UseSqlServer(connectionString, sqlServerOptionsAction: sql =>
                 {
-                    Log.Warning("Connect to DB Attention: {i}", i);
-                    services.AddDbContext<AppDbContext>(x => x.UseSqlServer(connectionString));
-                    return services;
-                }
-                catch(Exception ex)
-                {
-                    Log.Warning($"Failed to connect to the database. Exception: {ex}");
-                    await Task.Delay(dbConnectDelay);
-                }
+                    sql.EnableRetryOnFailure(
+                        maxRetryCount: dbConnectTry, 
+                        maxRetryDelay: TimeSpan.FromMilliseconds(dbConnectDelay),
+                        errorNumbersToAdd: null);
+                })) ;
             }
-            Log.Fatal("Connect to DB fatal error");
-            Environment.Exit(1);
+            catch (Exception ex)
+            {
+                Log.Warning($"Failed to connect to the database1. Exception: {ex}");
+                Environment.Exit(0);
+            }
+
             return services;
         }
         public static IServiceCollection AddVersioning(this IServiceCollection services)
@@ -70,8 +78,6 @@ namespace Bitbucket.DI
             var connectionString = configuration.GetConnectionString("MSSQL");
 
             services.AddHealthChecks()
-                .AddCheck<BloomFilterHealthCheck>("bloomfilter-healthcheck")
-                .AddSqlServer(connectionString)
                 .ForwardToPrometheus();
 
             return services;

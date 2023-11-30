@@ -1,4 +1,5 @@
 ﻿using Prometheus;
+using Serilog;
 
 namespace Bitbucket.Services
 {
@@ -9,6 +10,15 @@ namespace Bitbucket.Services
         {
             var summary = Metrics.CreateSummary(name, description);
             summary.Observe(data);
+        }
+        public void SendBloomFilterServiceAvaible(int isAvaible) 
+        {
+            Log.Warning("Using {name}", nameof(SendBloomFilterServiceAvaible));
+            var counter = Metrics.CreateCounter("is_bloom_filter_avaible", "View Bloom Filter is avaible now", new CounterConfiguration
+            {
+                LabelNames = new[] { "is_bloom_filter_avaible" }
+            });
+            counter.Inc(isAvaible);
         }
         public Counter CreateDurationOperation(string name, string desc = "") =>
             Metrics.CreateCounter(name, desc, new CounterConfiguration()

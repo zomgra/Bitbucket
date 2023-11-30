@@ -6,7 +6,7 @@ namespace Bitbucket.Helpers
 {
     public static class ControllerVersionsHelper
     {
-        public static IEnumerable<string> GetControllerVersions<T>(T foundedControllerType) where T : Type
+        public static IEnumerable<string> GetControllerVersions()
         {
             var assembly = Assembly.GetExecutingAssembly();
             var controllers = assembly.GetTypes().Where(type => typeof(ControllerBase).IsAssignableFrom(type) && !type.IsAbstract);
