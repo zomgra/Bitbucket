@@ -3,14 +3,12 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Prometheus;
 using Bitbucket.Helpers;
-using Bitbucket.Controllers.V1;
 using Bitbucket.DI;
 using Bitbucket.Models.Interfaces;
 using Bitbucket.Models;
 using Bitbucket.Services.Fabrics;
 using Bitbucket.Workers;
 using Serilog;
-using Bitbucket.Controllers.V2;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -53,15 +51,6 @@ builder.Services.AddAppDbContext(builder.Configuration);
     .AddCustomHealthCheck(builder.Configuration)
     .AddServices();
 
-var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
-
-if (isDocker)
-{
-    builder.Logging.AddFilter((category, level) =>
-            level == LogLevel.Information
-        ? false
-        : true).AddConsole();
-}
 builder.Services.AddHostedService<BloomFilterInitializerWorker>();
 var app = builder.Build();
 
